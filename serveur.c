@@ -140,12 +140,6 @@ int recois_envoie_message(int client_socket_fd, char data[1024])
     // Si le message commence par le mot: 'message:'
     if (strcmp(code, "message:") == 0)
     {
-        // Demandez à l'utilisateur d'entrer un message
-        char message[1024];
-        printf("Votre message (max 1000 caracteres): ");
-        fgets(message, sizeof(message), stdin);
-        strcpy(data, "message: ");
-        strcat(data, message);
         renvoie_message(client_socket_fd, data);
     }
     else
