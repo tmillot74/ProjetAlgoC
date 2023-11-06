@@ -95,6 +95,42 @@ int envoie_nom_de_client(int socketfd)
     return 0;
 }
 
+int envoie_operateur_numeros(int socketfd, char *operateur, char *numA, char *numB)
+{
+    char data[1024];
+    // la réinitialisation de l'ensemble des données
+    memset(data, 0, sizeof(data));
+
+    char calcul[1024];
+    sprintf(calcul, "%s %s %s", operateur, numA, numB);
+    printf("Votre calcul: %s\n", calcul);
+    strcpy(data, "calcul: ");
+    strcat(data, calcul);
+
+    int write_status = write(socketfd, data, strlen(data));
+    if (write_status < 0)
+    {
+        perror("erreur ecriture");
+        exit(EXIT_FAILURE);
+    }
+
+    // la réinitialisation de l'ensemble des données
+    memset(data, 0, sizeof(data));
+
+    // lire les données de la socket
+    int read_status = read(socketfd, data, sizeof(data));
+    if (read_status < 0)
+    {
+        perror("erreur lecture");
+        return -1;
+    }
+
+    printf("Calcul recu: %s\n", data);
+
+    return 0;
+}
+
+
 void analyse(char *pathname, char *data)
 {
     // compte de couleurs
@@ -185,6 +221,9 @@ int main(int argc, char **argv)
             envoie_recois_message(socketfd);
         else if (strcmp(argv[2], "nom") == 0)
             envoie_nom_de_client(socketfd);
+        else if (strcmp(argv[2], "calcul") == 0) {
+            envoie_operateur_numeros(socketfd, argv[3], argv[4], argv[5]);
+        }
     }
     else
     {

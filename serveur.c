@@ -123,6 +123,41 @@ int renvoie_message(int client_socket_fd, char *data)
     return (EXIT_SUCCESS);
 }
 
+int recois_numeros_calcule(int client_socket_fd, char *data)
+{
+    char operation;
+    float num1, num2;
+    sscanf(data, "%*s %c %f %f", &operation, &num1, &num2);
+
+    // Effectuer le calcul
+    float result;
+    switch (operation)
+    {
+        case '+':
+            result = num1 + num2;
+            break;
+        case '-':
+            result = num1 - num2;
+            break;
+        case '*':
+            result = num1 * num2;
+            break;
+        case '/':
+            result = num1 / num2;
+            break;
+        default:
+            printf("Opération non reconnue.\n");
+            return (EXIT_FAILURE);
+    }
+
+    // Envoyer le résultat au client
+    char result_str[1024];
+    sprintf(result_str, "calcul: %f", result);
+    renvoie_message(client_socket_fd, result_str);
+
+    return (EXIT_SUCCESS);
+}
+
 /* accepter la nouvelle connection d'un client et lire les données
  * envoyées par le client. En suite, le serveur envoie un message
  * en retour
@@ -143,9 +178,14 @@ int recois_envoie_message(int client_socket_fd, char data[1024])
         renvoie_message(client_socket_fd, data);
     }
     // Si le message commence par le mot: 'nom:'
-    if (strcmp(code, "nom:") == 0)
+    else if (strcmp(code, "nom:") == 0)
     {
         renvoie_message(client_socket_fd, data);
+    }
+    // Si le message commence par le mot: 'calcul:'
+    else if (strcmp(code, "calcul:") == 0)
+    {
+        recois_numeros_calcule(client_socket_fd, data);
     }
     else
     {
