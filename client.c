@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+
 #include "client.h"
 #include "bmp.h"
 
@@ -54,6 +55,42 @@ int envoie_recois_message(int socketfd)
     }
 
     printf("Message recu: %s\n", data);
+
+    return 0;
+}
+
+int envoie_nom_de_client(int socketfd)
+{
+    char data[1024];
+    // la réinitialisation de l'ensemble des données
+    memset(data, 0, sizeof(data));
+
+    // Récupére le hostname de la machine
+    char nom[1024];
+    gethostname(nom, sizeof(nom));
+    printf("Votre nom: %s\n", nom);
+    strcpy(data, "nom: ");
+    strcat(data, nom);
+
+    int write_status = write(socketfd, data, strlen(data));
+    if (write_status < 0)
+    {
+        perror("erreur ecriture");
+        exit(EXIT_FAILURE);
+    }
+
+    // la réinitialisation de l'ensemble des données
+    memset(data, 0, sizeof(data));
+
+    // lire les données de la socket
+    int read_status = read(socketfd, data, sizeof(data));
+    if (read_status < 0)
+    {
+        perror("erreur lecture");
+        return -1;
+    }
+
+    printf("Nom recu: %s\n", data);
 
     return 0;
 }
@@ -144,7 +181,10 @@ int main(int argc, char **argv)
     if (argc != 2)
     {
         // envoyer et recevoir un message
-        envoie_recois_message(socketfd);
+        if (strcmp(argv[2], "message") == 0)
+            envoie_recois_message(socketfd);
+        else if (strcmp(argv[2], "nom") == 0)
+            envoie_nom_de_client(socketfd);
     }
     else
     {

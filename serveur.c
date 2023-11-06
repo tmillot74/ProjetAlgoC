@@ -142,6 +142,11 @@ int recois_envoie_message(int client_socket_fd, char data[1024])
     {
         renvoie_message(client_socket_fd, data);
     }
+    // Si le message commence par le mot: 'nom:'
+    if (strcmp(code, "nom:") == 0)
+    {
+        renvoie_message(client_socket_fd, data);
+    }
     else
     {
         plot(data);
