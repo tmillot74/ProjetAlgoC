@@ -152,6 +152,9 @@ int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    // la réinitialisation de l'ensemble des données
+    memset(data, 0, sizeof(data));
+
     int read_status = read(socketfd, data, sizeof(data));
     if (read_status < 0)
     {
@@ -160,6 +163,43 @@ int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv)
     }
 
     printf("Couleurs recu: %s\n", data);
+
+    return 0;
+}
+
+int envoie_balises(int socketfd, char *nb_balises, char **argv)
+{
+    char data[1024];
+    memset(data, 0, sizeof(data));
+
+    strcpy(data, "balises: ");
+    strcat(data, nb_balises);
+
+    for (int i = 0; i < atoi(nb_balises); i++)
+    {
+        strcat(data, ", ");
+        strcat(data, argv[i+4]);
+    }
+
+
+    int write_status = write(socketfd, data, strlen(data));
+    if (write_status < 0)
+    {
+        perror("erreur ecriture");
+        exit(EXIT_FAILURE);
+    }
+
+    // la réinitialisation de l'ensemble des données
+    memset(data, 0, sizeof(data));
+
+    int read_status = read(socketfd, data, sizeof(data));
+    if (read_status < 0)
+    {
+        perror("erreur lecture");
+        return -1;
+    }
+
+    printf("Balises recu: %s\n", data);
 
     return 0;
 }
@@ -260,6 +300,8 @@ int main(int argc, char **argv)
         }
         else if (strcmp(argv[2], "couleurs") == 0)
             envoie_les_couleurs(socketfd, argv[3], argv);
+        else if (strcmp(argv[2], "balises") == 0)
+            envoie_balises(socketfd, argv[3], argv);
     }
     else
     {
