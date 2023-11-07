@@ -158,6 +158,74 @@ int recois_numeros_calcule(int client_socket_fd, char *data)
     return (EXIT_SUCCESS);
 }
 
+int recois_couleurs(int client_socket_fd, char *data)
+{
+
+//    char couleursData[1024];
+//    char* tok = strtok(data, "couleurs : ");
+//
+//
+//
+//    while (tok != NULL)
+//    {
+//        printf("%s\n", tok);
+//        tok = strtok(NULL, ", ");
+//    }
+
+    char* token;
+    char* rest = data;
+
+    token = strtok_r(rest, ", ", &rest);
+    int i = 0;
+    int nbCouleurs;
+    char *couleurs[1024];
+    while (token)
+    {
+//        printf("%s\n", token);
+        if (i==1)
+        {
+            nbCouleurs = atoi(token);
+//            printf("Nombre de couleurs: %d\n", nbCouleurs);
+        }
+        else if (i>1)
+        {
+            couleurs[i-2] = token;
+//            printf("Couleur: %s\n", *couleurs);
+        }
+        token = strtok_r(rest, ", ", &rest);
+        i++;
+    }
+
+//    printf("Nombre de couleurs: %d\n", nbCouleurs);
+//    for (int i = 0; i < nbCouleurs; i++)
+//    {
+//        printf("Couleur: %s\n", couleurs[i]);
+//    }
+
+    // Enregistrer les couleurs dans le fichier
+    FILE *fichier = fopen("couleurs.txt", "w");
+    if (fichier == NULL)
+    {
+        perror("Error opening file");
+        return 1;
+    }
+
+//    fprintf(fichier, "%d\n", nbCouleurs);
+    for (i = 0; i < nbCouleurs; i++)
+    {
+        fprintf(fichier, "%s\n", couleurs[i]);
+    }
+
+    fclose(fichier);
+
+    // Envoyer un message de confirmation au client
+    char result_str[1024];
+    sprintf(result_str, "couleurs: enrigistré");
+    renvoie_message(client_socket_fd, result_str);
+
+    return (EXIT_SUCCESS);
+}
+
 /* accepter la nouvelle connection d'un client et lire les données
  * envoyées par le client. En suite, le serveur envoie un message
  * en retour
@@ -186,6 +254,11 @@ int recois_envoie_message(int client_socket_fd, char data[1024])
     else if (strcmp(code, "calcul:") == 0)
     {
         recois_numeros_calcule(client_socket_fd, data);
+    }
+    // Si le message commence par le mot: 'couleurs:'
+    else if (strcmp(code, "couleurs:") == 0)
+    {
+        recois_couleurs(client_socket_fd, data);
     }
     else
     {

@@ -130,6 +130,40 @@ int envoie_operateur_numeros(int socketfd, char *operateur, char *numA, char *nu
     return 0;
 }
 
+int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv)
+{
+    char data[1024];
+    memset(data, 0, sizeof(data));
+
+    strcpy(data, "couleurs: ");
+    strcat(data, nb_couleurs);
+
+    for (int i = 0; i < atoi(nb_couleurs); i++)
+    {
+        strcat(data, ", ");
+        strcat(data, argv[i+4]);
+    }
+
+
+    int write_status = write(socketfd, data, strlen(data));
+    if (write_status < 0)
+    {
+        perror("erreur ecriture");
+        exit(EXIT_FAILURE);
+    }
+
+    int read_status = read(socketfd, data, sizeof(data));
+    if (read_status < 0)
+    {
+        perror("erreur lecture");
+        return -1;
+    }
+
+    printf("Couleurs recu: %s\n", data);
+
+    return 0;
+}
+
 
 void analyse(char *pathname, char *data)
 {
@@ -224,6 +258,8 @@ int main(int argc, char **argv)
         else if (strcmp(argv[2], "calcul") == 0) {
             envoie_operateur_numeros(socketfd, argv[3], argv[4], argv[5]);
         }
+        else if (strcmp(argv[2], "couleurs") == 0)
+            envoie_les_couleurs(socketfd, argv[3], argv);
     }
     else
     {
