@@ -50,7 +50,9 @@ int plot(char *data)
     char *saveptr = NULL;
     char *str = data;
     char *token = strtok_r(str, ",", &saveptr);
-    const int num_colors = 10;
+    int nbCouleurs = atoi(strtok(data, "couleurs: "));
+//    printf("%d", nbCouleurs);
+    const int num_colors = nbCouleurs;
 
     double angles[num_colors];
     memset(angles, 0, sizeof(angles));
@@ -327,10 +329,10 @@ int recois_envoie_message(int client_socket_fd, char data[1024])
         recois_numeros_calcule(client_socket_fd, data);
     }
     // Si le message commence par le mot: 'couleurs:'
-    else if (strcmp(code, "couleurs:") == 0)
-    {
-        recois_couleurs(client_socket_fd, data);
-    }
+//    else if (strcmp(code, "couleurs:") == 0)
+//    {
+//        recois_couleurs(client_socket_fd, data);
+//    }
     // Si le message commence par le mot: 'balises:'
     else if (strcmp(code, "balises:") == 0)
     {
