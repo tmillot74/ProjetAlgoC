@@ -14,7 +14,9 @@
 #include <netinet/in.h>
 
 
+#include "serveur.h"
 #include "client.h"
+#include "json.h"
 #include "bmp.h"
 
 /*
@@ -22,9 +24,8 @@
  * Il faut un argument : l'identifiant de la socket
  */
 
-int envoie_recois_message(int socketfd)
+int envoie_recois_message(int socketfd, char *json)
 {
-
     char data[1024];
     // la réinitialisation de l'ensemble des données
     memset(data, 0, sizeof(data));
@@ -33,33 +34,57 @@ int envoie_recois_message(int socketfd)
     char message[1024];
     printf("Votre message (max 1000 caracteres): ");
     fgets(message, sizeof(message), stdin);
+    message[strlen(message) - 1] = '\0';
     strcpy(data, "message: ");
     strcat(data, message);
 
-    int write_status = write(socketfd, data, strlen(data));
-    if (write_status < 0)
+    if (strcmp(json, "1") == 0)
     {
-        perror("erreur ecriture");
-        exit(EXIT_FAILURE);
+        char *json_data[] = {message};
+        envoie_json(socketfd, "message", json_data, 1);
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        // lire les données de la socket
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0)
+        {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Message recu: %s\n", data);
+
+        return 0;
     }
-
-    // la réinitialisation de l'ensemble des données
-    memset(data, 0, sizeof(data));
-
-    // lire les données de la socket
-    int read_status = read(socketfd, data, sizeof(data));
-    if (read_status < 0)
+    else
     {
-        perror("erreur lecture");
-        return -1;
+        int write_status = write(socketfd, data, strlen(data));
+        if (write_status < 0)
+        {
+            perror("erreur ecriture");
+            exit(EXIT_FAILURE);
+        }
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        // lire les données de la socket
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0)
+        {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Message recu: %s\n", data);
+
+        return 0;
     }
-
-    printf("Message recu: %s\n", data);
-
-    return 0;
 }
 
-int envoie_nom_de_client(int socketfd)
+int envoie_nom_de_client(int socketfd, char *json)
 {
     char data[1024];
     // la réinitialisation de l'ensemble des données
@@ -72,62 +97,108 @@ int envoie_nom_de_client(int socketfd)
     strcpy(data, "nom: ");
     strcat(data, nom);
 
-    int write_status = write(socketfd, data, strlen(data));
-    if (write_status < 0)
+    if (strcmp(json, "1") == 0)
     {
-        perror("erreur ecriture");
-        exit(EXIT_FAILURE);
+        char *json_data[] = {nom};
+        envoie_json(socketfd, "nom", json_data, 1);
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        // lire les données de la socket
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0)
+        {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Nom recu: %s\n", data);
+        return 0;
     }
-
-    // la réinitialisation de l'ensemble des données
-    memset(data, 0, sizeof(data));
-
-    // lire les données de la socket
-    int read_status = read(socketfd, data, sizeof(data));
-    if (read_status < 0)
+    else
     {
-        perror("erreur lecture");
-        return -1;
+        int write_status = write(socketfd, data, strlen(data));
+        if (write_status < 0) {
+            perror("erreur ecriture");
+            exit(EXIT_FAILURE);
+        }
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        // lire les données de la socket
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0) {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Nom recu: %s\n", data);
+
+        return 0;
     }
-
-    printf("Nom recu: %s\n", data);
-
-    return 0;
 }
 
-int envoie_operateur_numeros(int socketfd, char *operateur, char *numA, char *numB)
+int envoie_operateur_numeros(int socketfd, char *operateur, char *numA, char *numB, char *json)
 {
     char data[1024];
     // la réinitialisation de l'ensemble des données
     memset(data, 0, sizeof(data));
 
     char calcul[1024];
-    sprintf(calcul, "%s %s %s", operateur, numA, numB);
+    sprintf(calcul, "%s, %s, %s", operateur, numA, numB);
     printf("Votre calcul: %s\n", calcul);
     strcpy(data, "calcul: ");
     strcat(data, calcul);
 
-    int write_status = write(socketfd, data, strlen(data));
-    if (write_status < 0)
+
+    if (strcmp(json, "1") == 0)
     {
-        perror("erreur ecriture");
-        exit(EXIT_FAILURE);
+//        sprintf(calcul, "\"%s\", \"%s\", \"%s\"", operateur, numA, numB);
+//        char *json_data[] = {calcul};
+        char *json_data[] = {operateur, numA, numB};
+//        printf("%s\n", json_data[0]);
+        envoie_json(socketfd, "calcul", json_data, 3);
+
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        // lire les données de la socket
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0)
+        {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Calcul recu: %s\n", data);
+
+        return 0;
     }
-
-    // la réinitialisation de l'ensemble des données
-    memset(data, 0, sizeof(data));
-
-    // lire les données de la socket
-    int read_status = read(socketfd, data, sizeof(data));
-    if (read_status < 0)
+    else
     {
-        perror("erreur lecture");
-        return -1;
+        int write_status = write(socketfd, data, strlen(data));
+        if (write_status < 0) {
+            perror("erreur ecriture");
+            exit(EXIT_FAILURE);
+        }
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        // lire les données de la socket
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0) {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Calcul recu: %s\n", data);
+
+        return 0;
     }
-
-    printf("Calcul recu: %s\n", data);
-
-    return 0;
 }
 
 int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv)
@@ -138,33 +209,66 @@ int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv)
     strcpy(data, "couleurs: ");
     strcat(data, nb_couleurs);
 
+    int nb_couleurs_int = atoi(nb_couleurs);
+
+//    printf("%s", argv[4]);
+//    strcat(data, data_color);
+
     for (int i = 0; i < atoi(nb_couleurs); i++)
     {
         strcat(data, ", ");
         strcat(data, argv[i+4]);
     }
 
+    printf("%s\n", data);
 
-    int write_status = write(socketfd, data, strlen(data));
-    if (write_status < 0)
+    if (strcmp(argv[1], "1") == 0)
     {
-        perror("erreur ecriture");
-        exit(EXIT_FAILURE);
+
+        char *json_data[nb_couleurs_int+1];
+        json_data[0] = nb_couleurs;
+        for (int i = 0; i < nb_couleurs_int; i++)
+        {
+            json_data[i+1] = argv[i+4];
+        }
+        envoie_json(socketfd, "couleurs", json_data, nb_couleurs_int+1);
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        // lire les données de la socket
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0)
+        {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Couleurs recu: %s\n", data);
+
+        return 0;
     }
-
-    // la réinitialisation de l'ensemble des données
-    memset(data, 0, sizeof(data));
-
-    int read_status = read(socketfd, data, sizeof(data));
-    if (read_status < 0)
+    else
     {
-        perror("erreur lecture");
-        return -1;
+        int write_status = write(socketfd, data, strlen(data));
+        if (write_status < 0) {
+            perror("erreur ecriture");
+            exit(EXIT_FAILURE);
+        }
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0) {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Couleurs recu: %s\n", data);
+
+        return 0;
     }
-
-    printf("Couleurs recu: %s\n", data);
-
-    return 0;
 }
 
 int envoie_balises(int socketfd, char *nb_balises, char **argv)
@@ -181,27 +285,54 @@ int envoie_balises(int socketfd, char *nb_balises, char **argv)
         strcat(data, argv[i+4]);
     }
 
+    printf("%s\n", data);
 
-    int write_status = write(socketfd, data, strlen(data));
-    if (write_status < 0)
+    if (strcmp(argv[1], "1") == 0)
     {
-        perror("erreur ecriture");
-        exit(EXIT_FAILURE);
+        char *json_data[atoi(nb_balises)+1];
+        json_data[0] = nb_balises;
+        for (int i = 0; i < atoi(nb_balises); i++)
+        {
+            json_data[i+1] = argv[i+4];
+        }
+        envoie_json(socketfd, "balises", json_data, atoi(nb_balises)+1);
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        // lire les données de la socket
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0)
+        {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Balises recu: %s\n", data);
+
+        return 0;
     }
-
-    // la réinitialisation de l'ensemble des données
-    memset(data, 0, sizeof(data));
-
-    int read_status = read(socketfd, data, sizeof(data));
-    if (read_status < 0)
+    else
     {
-        perror("erreur lecture");
-        return -1;
+        int write_status = write(socketfd, data, strlen(data));
+        if (write_status < 0) {
+            perror("erreur ecriture");
+            exit(EXIT_FAILURE);
+        }
+
+        // la réinitialisation de l'ensemble des données
+        memset(data, 0, sizeof(data));
+
+        int read_status = read(socketfd, data, sizeof(data));
+        if (read_status < 0) {
+            perror("erreur lecture");
+            return -1;
+        }
+
+        printf("Balises recu: %s\n", data);
+
+        return 0;
     }
-
-    printf("Balises recu: %s\n", data);
-
-    return 0;
 }
 
 
@@ -267,6 +398,47 @@ int envoie_couleurs(int socketfd, char *pathname)
     return 0;
 }
 
+int envoie_json(int socketfd, char *code, char **data, int size)
+{
+    char json_data[1024];
+    memset(json_data, 0, sizeof(json_data));
+
+    strcpy(json_data, "{\n\t");
+    strcat(json_data, "\"code\" : \"");
+    strcat(json_data, code);
+    strcat(json_data, "\",\n\t\"valeurs\" : [ \"");
+
+//    int i = 0;
+
+//    printf("%zu", sizeof(*data));
+//    printf("%zu", sizeof(data[0]));
+
+    for (int i = 0; i < size; ++i) {
+        strcat(json_data, data[i]);
+        if (i != size - 1)
+            strcat(json_data, "\", \"");
+    }
+
+//    for (int i = 0; i < sizeof(data)/sizeof(data[0]); i++)
+//    {
+//        strcat(json_data, data[i]);
+//        if (i != sizeof(*data)/sizeof(data[0]) - 1)
+//            strcat(json_data, ", ");
+//    }
+    strcat(json_data, "\" ]\n}\n");
+
+//    printf("%s", json_data);
+
+    int write_status = write(socketfd, json_data, strlen(json_data));
+    if (write_status < 0)
+    {
+        perror("erreur ecriture");
+        exit(EXIT_FAILURE);
+    }
+
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     int socketfd;
@@ -306,11 +478,11 @@ int main(int argc, char **argv)
     {
         // envoyer et recevoir un message
         if (strcmp(argv[2], "message") == 0)
-            envoie_recois_message(socketfd);
+            envoie_recois_message(socketfd, argv[1]);
         else if (strcmp(argv[2], "nom") == 0)
-            envoie_nom_de_client(socketfd);
+            envoie_nom_de_client(socketfd, argv[1]);
         else if (strcmp(argv[2], "calcul") == 0) {
-            envoie_operateur_numeros(socketfd, argv[3], argv[4], argv[5]);
+            envoie_operateur_numeros(socketfd, argv[3], argv[4], argv[5], argv[1]);
         }
         else if (strcmp(argv[2], "couleurs") == 0)
             envoie_les_couleurs(socketfd, argv[3], argv);

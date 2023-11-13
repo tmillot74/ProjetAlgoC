@@ -16,6 +16,7 @@
 #include <unistd.h>
 
 #include "serveur.h"
+#include "json.h"
 int socketfd;
 
 int visualize_plot()
@@ -115,6 +116,9 @@ int plot(char *data)
  */
 int renvoie_message(int client_socket_fd, char *data)
 {
+    // Envoyer un message au client
+    printf("Message envoyé: %s\n", data);
+
     int data_size = write(client_socket_fd, (void *)data, strlen(data));
 
     if (data_size < 0)
@@ -129,7 +133,34 @@ int recois_numeros_calcule(int client_socket_fd, char *data)
 {
     char operation;
     float num1, num2;
-    sscanf(data, "%*s %c %f %f", &operation, &num1, &num2);
+//    sscanf(data, "%*s, %c, %f, %f", &operation, &num1, &num2);
+
+    char* token;
+    char* rest = data;
+
+    token = strtok_r(rest, ", ", &rest);
+    int i = 0;
+    while (token)
+    {
+//        printf("%s\n", token);
+        if (i==1)
+        {
+            operation = token[0];
+//            printf("Operation: %c\n", operation);
+        }
+        else if (i==2)
+        {
+            num1 = atof(token);
+//            printf("Num1: %f\n", num1);
+        }
+        else if (i==3)
+        {
+            num2 = atof(token);
+//            printf("Num2: %f\n", num2);
+        }
+        token = strtok_r(rest, ", ", &rest);
+        i++;
+    }
 
     // Effectuer le calcul
     float result;
@@ -155,6 +186,7 @@ int recois_numeros_calcule(int client_socket_fd, char *data)
     // Envoyer le résultat au client
     char result_str[1024];
     sprintf(result_str, "calcul: %f", result);
+//    printf("Message envoyé: %s\n", result_str);
     renvoie_message(client_socket_fd, result_str);
 
     return (EXIT_SUCCESS);
@@ -293,11 +325,12 @@ int recois_balises(int client_socket_fd, char *data)
 
     // Envoyer un message de confirmation au client
     char result_str[1024];
-    sprintf(result_str, "couleurs: enregistré");
+    sprintf(result_str, "balises: enregistré");
     renvoie_message(client_socket_fd, result_str);
 
     return (EXIT_SUCCESS);
 }
+
 
 /* accepter la nouvelle connection d'un client et lire les données
  * envoyées par le client. En suite, le serveur envoie un message
@@ -309,9 +342,18 @@ int recois_envoie_message(int client_socket_fd, char data[1024])
      * extraire le code des données envoyées par le client.
      * Les données envoyées par le client peuvent commencer par le mot "message :" ou un autre mot.
      */
-    printf("Message recu: %s\n", data);
-    char code[10];
+//    printf("Message recu: %s\n", data);
+    char code[1024];
+
     sscanf(data, "%s", code);
+    if (strcmp(code, "{") == 0)
+    {
+        parse_json(data);
+        sscanf(data, "%s", code);
+    }
+
+//    printf("Code: %s\n", code);
+    printf("Message recu: %s\n", data);
 
     // Si le message commence par le mot: 'message:'
     if (strcmp(code, "message:") == 0)
@@ -329,19 +371,23 @@ int recois_envoie_message(int client_socket_fd, char data[1024])
         recois_numeros_calcule(client_socket_fd, data);
     }
     // Si le message commence par le mot: 'couleurs:'
-//    else if (strcmp(code, "couleurs:") == 0)
-//    {
-//        recois_couleurs(client_socket_fd, data);
-//    }
+    else if (strcmp(code, "couleurs:") == 0)
+    {
+        char saveptr[1024];
+        strcpy(saveptr, data);
+        recois_couleurs(client_socket_fd, saveptr);
+        plot(data);
+    }
     // Si le message commence par le mot: 'balises:'
     else if (strcmp(code, "balises:") == 0)
     {
         recois_balises(client_socket_fd, data);
     }
-    else
-    {
-        plot(data);
-    }
+//    else if ()
+//    else
+//    {
+//        plot(data);
+//    }
 
     return (EXIT_SUCCESS);
 }

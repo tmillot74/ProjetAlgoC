@@ -18,5 +18,6 @@
 const char *svg_file_path = "pie_chart.svg";
 
 int recois_envoie_message(int, char[1024]);
+int parse_json(char *data);
 
 #endif

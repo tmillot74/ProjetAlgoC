@@ -9,3 +9,5 @@
 /*
  * Code permettant de stocker différents types de couleurs : format 24 bits (RGB) ou format 32 bits (32). 
  */
+
+int parse_json(char *data);
