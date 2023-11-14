@@ -8,9 +8,10 @@
  * Code pour le traitement des messages au format JSON
  */
 
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <unistd.h>
 
 
 int parse_json(char *data)
@@ -49,6 +50,11 @@ int parse_json(char *data)
         values++;
     }
 
+    // supprime les espaces en fin de chaîne
+    while (values[strlen(values) - 1] == ' ') {
+        values[strlen(values) - 1] = '\0';
+    }
+
 
     // Récupération du code
     char *codeStart = strstr(data, "\"code\" : \"") + strlen("\"code\" : \"");
@@ -70,6 +76,116 @@ int parse_json(char *data)
     // Libération de la mémoire allouée
 //    free(values);
 //    free(code);
+
+    return 0;
+}
+
+//int envoie_json(int socketfd, char *code, char **data, int size)
+//{
+//    char json_data[1024];
+//    memset(json_data, 0, sizeof(json_data));
+//
+//    strcpy(json_data, "{\n\t");
+//    strcat(json_data, "\"code\" : \"");
+//    strcat(json_data, code);
+//    strcat(json_data, "\",\n\t\"valeurs\" : [ \"");
+//
+////    int i = 0;
+//
+////    printf("%zu", sizeof(*data));
+////    printf("%zu", sizeof(data[0]));
+//
+//    for (int i = 0; i < size; ++i) {
+//        strcat(json_data, data[i]);
+//        if (i != size - 1)
+//            strcat(json_data, "\", \"");
+//    }
+//
+////    for (int i = 0; i < sizeof(data)/sizeof(data[0]); i++)
+////    {
+////        strcat(json_data, data[i]);
+////        if (i != sizeof(*data)/sizeof(data[0]) - 1)
+////            strcat(json_data, ", ");
+////    }
+//    strcat(json_data, "\" ]\n}\n");
+//
+////    printf("%s", json_data);
+//
+//    int write_status = write(socketfd, json_data, strlen(json_data));
+//    if (write_status < 0)
+//    {
+//        perror("erreur ecriture");
+//        exit(EXIT_FAILURE);
+//    }
+//
+//    return 0;
+//}
+int envoie_json(int socketfd, char *data)
+{
+    int size = 0;
+    char *data2[1024];
+    char *token, *rest, code[1024];
+
+
+    token = strtok_r(data, ":", &rest);
+    strcpy(code, token);
+//    rest = strtok(rest, " ");
+//    printf("token :%s\n", rest);
+    token = strtok_r(rest, ",", &rest);
+
+    while (token != NULL)
+    {
+//        printf("token :%s\n", token);
+        while (token[0] == ' ')
+            token++;
+        data2[size] = token;
+        size++;
+        token = strtok_r(rest, ",", &rest);
+    }
+
+
+//    printf("code :%s\n", code);
+//    printf("token :%s\n", token);
+//    printf("rest :%s\n", rest);
+//    printf("size :%d\n", size);
+//    for (int i = 0; i < size; ++i) {
+//        printf("data2[%d] :%s\n", i, data2[i]);
+//    }
+
+    char json_data[1024];
+    memset(json_data, 0, sizeof(json_data));
+
+    strcpy(json_data, "{\n\t");
+    strcat(json_data, "\"code\" : \"");
+    strcat(json_data, code);
+    strcat(json_data, "\",\n\t\"valeurs\" : [ \"");
+
+//    int i = 0;
+
+//    printf("%zu", sizeof(*data));
+//    printf("%zu", sizeof(data[0]));
+
+    for (int i = 0; i < size; ++i) {
+        strcat(json_data, data2[i]);
+        if (i != size - 1)
+            strcat(json_data, "\", \"");
+    }
+//    for (int i = 0; i < sizeof(data2)/sizeof(data2[0]); i++)
+//    {
+//        strcat(json_data, data2[i]);
+//        if (i != sizeof(*data2)/sizeof(data2[0]) - 1)
+//            strcat(json_data, ", ");
+//    }
+    strcat(json_data, "\" ]\n}\n");
+
+    printf("%s", json_data);
+
+    int write_status = write(socketfd, json_data, strlen(json_data));
+    if (write_status < 0)
+    {
+        perror("erreur ecriture");
+        exit(EXIT_FAILURE);
+    }
 
     return 0;
 }

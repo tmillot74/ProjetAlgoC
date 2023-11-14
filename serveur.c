@@ -114,22 +114,31 @@ int plot(char *data)
 
 /* renvoyer un message (*data) au client (client_socket_fd)
  */
-int renvoie_message(int client_socket_fd, char *data)
+int renvoie_message(int client_socket_fd, char *data, int json)
 {
+    if (json == 1)
+    {
+        char json_data[1024];
+        strcpy(json_data, data);
+        envoie_json(client_socket_fd, json_data);
+    }
+    else
+    {
+        int data_size = write(client_socket_fd, (void *)data, strlen(data));
+
+        if (data_size < 0)
+        {
+            perror("erreur ecriture");
+            return (EXIT_FAILURE);
+        }
+    }
     // Envoyer un message au client
     printf("Message envoyé: %s\n", data);
 
-    int data_size = write(client_socket_fd, (void *)data, strlen(data));
-
-    if (data_size < 0)
-    {
-        perror("erreur ecriture");
-        return (EXIT_FAILURE);
-    }
     return (EXIT_SUCCESS);
 }
 
-int recois_numeros_calcule(int client_socket_fd, char *data)
+int recois_numeros_calcule(int client_socket_fd, char *data, int json)
 {
     char operation;
     float num1, num2;
@@ -187,12 +196,12 @@ int recois_numeros_calcule(int client_socket_fd, char *data)
     char result_str[1024];
     sprintf(result_str, "calcul: %f", result);
 //    printf("Message envoyé: %s\n", result_str);
-    renvoie_message(client_socket_fd, result_str);
+    renvoie_message(client_socket_fd, result_str, json);
 
     return (EXIT_SUCCESS);
 }
 
-int recois_couleurs(int client_socket_fd, char *data)
+int recois_couleurs(int client_socket_fd, char *data, int json)
 {
 
 //    char couleursData[1024];
@@ -255,12 +264,12 @@ int recois_couleurs(int client_socket_fd, char *data)
     // Envoyer un message de confirmation au client
     char result_str[1024];
     sprintf(result_str, "couleurs: enregistré");
-    renvoie_message(client_socket_fd, result_str);
+    renvoie_message(client_socket_fd, result_str, json);
 
     return (EXIT_SUCCESS);
 }
 
-int recois_balises(int client_socket_fd, char *data)
+int recois_balises(int client_socket_fd, char *data, int json)
 {
 
 //    char couleursData[1024];
@@ -326,7 +335,7 @@ int recois_balises(int client_socket_fd, char *data)
     // Envoyer un message de confirmation au client
     char result_str[1024];
     sprintf(result_str, "balises: enregistré");
-    renvoie_message(client_socket_fd, result_str);
+    renvoie_message(client_socket_fd, result_str, json);
 
     return (EXIT_SUCCESS);
 }
@@ -344,10 +353,12 @@ int recois_envoie_message(int client_socket_fd, char data[1024])
      */
 //    printf("Message recu: %s\n", data);
     char code[1024];
+    int json = 0;
 
     sscanf(data, "%s", code);
     if (strcmp(code, "{") == 0)
     {
+        json = 1;
         parse_json(data);
         sscanf(data, "%s", code);
     }
@@ -358,30 +369,30 @@ int recois_envoie_message(int client_socket_fd, char data[1024])
     // Si le message commence par le mot: 'message:'
     if (strcmp(code, "message:") == 0)
     {
-        renvoie_message(client_socket_fd, data);
+        renvoie_message(client_socket_fd, data, json);
     }
     // Si le message commence par le mot: 'nom:'
     else if (strcmp(code, "nom:") == 0)
     {
-        renvoie_message(client_socket_fd, data);
+        renvoie_message(client_socket_fd, data, json);
     }
     // Si le message commence par le mot: 'calcul:'
     else if (strcmp(code, "calcul:") == 0)
     {
-        recois_numeros_calcule(client_socket_fd, data);
+        recois_numeros_calcule(client_socket_fd, data, json);
     }
     // Si le message commence par le mot: 'couleurs:'
     else if (strcmp(code, "couleurs:") == 0)
     {
         char saveptr[1024];
         strcpy(saveptr, data);
-        recois_couleurs(client_socket_fd, saveptr);
+        recois_couleurs(client_socket_fd, saveptr, json);
         plot(data);
     }
     // Si le message commence par le mot: 'balises:'
     else if (strcmp(code, "balises:") == 0)
     {
-        recois_balises(client_socket_fd, data);
+        recois_balises(client_socket_fd, data, json);
     }
 //    else if ()
 //    else

@@ -19,6 +19,5 @@
  */
 //int envoie_recois_message(int socketfd);
 //int envoie_nom_de_client(int socketfd);
-int envoie_json(int socketfd, char *code, char **data, int size);
 
 #endif

@@ -11,3 +11,5 @@
  */
 
 int parse_json(char *data);
+//int envoie_json(int socketfd, char *code, char **data, int size);
+int envoie_json(int socketfd, char *data);
