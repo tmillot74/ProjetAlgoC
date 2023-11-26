@@ -140,8 +140,9 @@ int renvoie_message(int client_socket_fd, char *data, int json)
 
 int recois_numeros_calcule(int client_socket_fd, char *data, int json)
 {
-    char operation;
-    float num1, num2;
+    char* operation;
+//    char operation;
+//    float num1, num2;
 //    sscanf(data, "%*s, %c, %f, %f", &operation, &num1, &num2);
 
     char* token;
@@ -149,48 +150,151 @@ int recois_numeros_calcule(int client_socket_fd, char *data, int json)
 
     token = strtok_r(rest, ", ", &rest);
     int i = 0;
+    float num[1024];
+    int nbNum = 0;
     while (token)
     {
 //        printf("%s\n", token);
         if (i==1)
         {
-            operation = token[0];
+            operation = token;
+//            operation = token[0];
 //            printf("Operation: %c\n", operation);
         }
-        else if (i==2)
+//        else if (i==2)
+//        {
+//            num1 = atof(token);
+////            printf("Num1: %f\n", num1);
+//        }
+//        else if (i==3)
+//        {
+//            num2 = atof(token);
+////            printf("Num2: %f\n", num2);
+//        }
+        else if (i>1)
         {
-            num1 = atof(token);
-//            printf("Num1: %f\n", num1);
-        }
-        else if (i==3)
-        {
-            num2 = atof(token);
-//            printf("Num2: %f\n", num2);
+//            printf("Num: %f\n", atof(token));
+            num[nbNum] = atof(token);
+            nbNum++;
         }
         token = strtok_r(rest, ", ", &rest);
         i++;
     }
+//    for (i = 0; i < nbNum; i++)
+//    {
+//        printf("Num: %f\n", num[i]);
+//    }
 
     // Effectuer le calcul
-    float result;
-    switch (operation)
+    float result = 0;
+    if (strcmp(operation, "+") == 0)
     {
-        case '+':
-            result = num1 + num2;
-            break;
-        case '-':
-            result = num1 - num2;
-            break;
-        case '*':
-            result = num1 * num2;
-            break;
-        case '/':
-            result = num1 / num2;
-            break;
-        default:
-            printf("Opération non reconnue.\n");
-            return (EXIT_FAILURE);
+        for (i = 0; i < nbNum; i++)
+        {
+            result += num[i];
+        }
     }
+    else if (strcmp(operation, "-") == 0)
+    {
+        for (i = 0; i < nbNum; i++)
+        {
+            printf("%f\n", num[i]);
+            if (i == 0)
+                result = num[i];
+            else
+                result -= num[i];
+            printf("%f\n", result);
+        }
+    }
+    else if (strcmp(operation, "*") == 0)
+    {
+        for (i = 0; i < nbNum; i++)
+        {
+            if (i == 0)
+                result = num[i];
+            else
+                result *= num[i];
+        }
+    }
+    else if (strcmp(operation, "/") == 0)
+    {
+        for (i = 0; i < nbNum; i++)
+        {
+            if (i == 0)
+                result = num[i];
+            else
+                result /= num[i];
+        }
+    }
+    else if (strcmp(operation, "moyenne") == 0)
+    {
+        for (i = 0; i < nbNum; i++)
+        {
+            result += num[i];
+        }
+        result /= nbNum;
+    }
+    else if (strcmp(operation, "minimum") == 0)
+    {
+        result = num[0];
+        for (i = 1; i < nbNum; i++)
+        {
+            if (num[i] < result)
+            {
+                result = num[i];
+            }
+        }
+    }
+    else if (strcmp(operation, "maximum") == 0)
+    {
+        result = num[0];
+        for (i = 1; i < nbNum; i++)
+        {
+            if (num[i] > result)
+            {
+                result = num[i];
+            }
+        }
+    }
+    else if (strcmp(operation, "écart-type") == 0)
+    {
+        float moyenne = 0;
+        for (i = 0; i < nbNum; i++)
+        {
+            moyenne += num[i];
+        }
+        moyenne /= nbNum;
+
+        float somme = 0;
+        for (i = 0; i < nbNum; i++)
+        {
+            somme += pow(num[i] - moyenne, 2);
+        }
+        result = sqrt(somme / nbNum);
+    }
+    else
+    {
+        printf("Opération non reconnue.\n");
+        return (EXIT_FAILURE);
+    }
+//    switch (operation)
+//    {
+//        case '+':
+//            result = num1 + num2;
+//            break;
+//        case '-':
+//            result = num1 - num2;
+//            break;
+//        case '*':
+//            result = num1 * num2;
+//            break;
+//        case '/':
+//            result = num1 / num2;
+//            break;
+//        default:
+//            printf("Opération non reconnue.\n");
+//            return (EXIT_FAILURE);
+//    }
 
     // Envoyer le résultat au client
     char result_str[1024];

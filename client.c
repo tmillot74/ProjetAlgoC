@@ -114,17 +114,30 @@ int envoie_nom_de_client(int socketfd, char *json)
     return 0;
 }
 
-int envoie_operateur_numeros(int socketfd, char *operateur, char *numA, char *numB, char *json)
+int envoie_operateur_numeros(int socketfd, int argc, char **argv, char *json)
 {
     char data[1024];
     // la réinitialisation de l'ensemble des données
     memset(data, 0, sizeof(data));
 
     char calcul[1024];
-    sprintf(calcul, "%s, %s, %s", operateur, numA, numB);
+
+    strcpy(calcul, argv[3]);
+//    printf("%d\n", argc);
+
+    for (int i = 4; i < argc; i++)
+    {
+//        char tmp[1024];
+        strcat(calcul, ", ");
+        strcat(calcul, argv[i]);
+    }
+//    printf("%s", calcul);
+
+//    sprintf(calcul, "%s, %s, %s", operateur, numA, numB);
     printf("Votre calcul: %s\n", calcul);
     strcpy(data, "calcul: ");
     strcat(data, calcul);
+
 
 
     if (strcmp(json, "1") == 0) {
@@ -157,7 +170,7 @@ int envoie_operateur_numeros(int socketfd, char *operateur, char *numA, char *nu
 
 }
 
-int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv)
+int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv, char *json)
 {
     char data[1024];
     memset(data, 0, sizeof(data));
@@ -176,7 +189,7 @@ int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv)
 
     printf("%s\n", data);
 
-    if (strcmp(argv[1], "1") == 0)
+    if (strcmp(json, "1") == 0)
     {
         envoie_json(socketfd, data);
     }
@@ -207,7 +220,7 @@ int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv)
 
 }
 
-int envoie_balises(int socketfd, char *nb_balises, char **argv)
+int envoie_balises(int socketfd, char *nb_balises, char **argv, char* json)
 {
     char data[1024];
     memset(data, 0, sizeof(data));
@@ -223,7 +236,7 @@ int envoie_balises(int socketfd, char *nb_balises, char **argv)
 
     printf("%s\n", data);
 
-    if (strcmp(argv[1], "1") == 0)
+    if (strcmp(json, "1") == 0)
     {
         envoie_json(socketfd, data);
     }
@@ -359,11 +372,11 @@ int main(int argc, char **argv)
         else if (strcmp(argv[2], "nom") == 0)
             envoie_nom_de_client(socketfd, argv[1]);
         else if (strcmp(argv[2], "calcul") == 0)
-            envoie_operateur_numeros(socketfd, argv[3], argv[4], argv[5], argv[1]);
+            envoie_operateur_numeros(socketfd, argc, argv, argv[1]);
         else if (strcmp(argv[2], "couleurs") == 0)
-            envoie_les_couleurs(socketfd, argv[3], argv);
+            envoie_les_couleurs(socketfd, argv[3], argv, argv[1]);
         else if (strcmp(argv[2], "balises") == 0)
-            envoie_balises(socketfd, argv[3], argv);
+            envoie_balises(socketfd, argv[3], argv, argv[1]);
     }
     else
     {
