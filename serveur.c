@@ -17,6 +17,8 @@
 
 #include "serveur.h"
 #include "json.h"
+#include "operations.h"
+
 int socketfd;
 
 int visualize_plot()
@@ -134,6 +136,8 @@ int renvoie_message(int client_socket_fd, char *data, int json)
     }
     // Envoyer un message au client
     printf("Message envoyé: %s\n", data);
+    printf("Message envoyé au client: %d\n", client_socket_fd);
+//    printf("Message envoyé au client %d : %s\n", client_socket_fd, data);
 
     return (EXIT_SUCCESS);
 }
@@ -189,88 +193,39 @@ int recois_numeros_calcule(int client_socket_fd, char *data, int json)
     float result = 0;
     if (strcmp(operation, "+") == 0)
     {
-        for (i = 0; i < nbNum; i++)
-        {
-            result += num[i];
-        }
+        result = addition(nbNum, num);
     }
     else if (strcmp(operation, "-") == 0)
     {
-        for (i = 0; i < nbNum; i++)
-        {
-            printf("%f\n", num[i]);
-            if (i == 0)
-                result = num[i];
-            else
-                result -= num[i];
-            printf("%f\n", result);
-        }
+        result = soustraction(nbNum, num);
     }
     else if (strcmp(operation, "*") == 0)
     {
-        for (i = 0; i < nbNum; i++)
-        {
-            if (i == 0)
-                result = num[i];
-            else
-                result *= num[i];
-        }
+        result = multiplication(nbNum, num);
     }
     else if (strcmp(operation, "/") == 0)
     {
-        for (i = 0; i < nbNum; i++)
-        {
-            if (i == 0)
-                result = num[i];
-            else
-                result /= num[i];
-        }
+        result = division(nbNum, num);
     }
     else if (strcmp(operation, "moyenne") == 0)
     {
-        for (i = 0; i < nbNum; i++)
-        {
-            result += num[i];
-        }
-        result /= nbNum;
+        result = moyenne(nbNum, num);
     }
     else if (strcmp(operation, "minimum") == 0)
     {
-        result = num[0];
-        for (i = 1; i < nbNum; i++)
-        {
-            if (num[i] < result)
-            {
-                result = num[i];
-            }
-        }
+        result = minimum(nbNum, num);
     }
     else if (strcmp(operation, "maximum") == 0)
     {
-        result = num[0];
-        for (i = 1; i < nbNum; i++)
-        {
-            if (num[i] > result)
-            {
-                result = num[i];
-            }
-        }
+        result = maximum(nbNum, num);
+    }
+    else if (strcmp(operation, "variance") == 0)
+    {
+        result = variance(nbNum, num);
     }
     else if (strcmp(operation, "écart-type") == 0)
     {
-        float moyenne = 0;
-        for (i = 0; i < nbNum; i++)
-        {
-            moyenne += num[i];
-        }
-        moyenne /= nbNum;
-
-        float somme = 0;
-        for (i = 0; i < nbNum; i++)
-        {
-            somme += pow(num[i] - moyenne, 2);
-        }
-        result = sqrt(somme / nbNum);
+        result = ecart_type(nbNum, num);
     }
     else
     {

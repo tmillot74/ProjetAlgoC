@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <regex.h>
-#include "json.h"
+#include "validation.h"
 
 
 int parse_json(char *data)
@@ -89,46 +89,6 @@ int parse_json(char *data)
     return 0;
 }
 
-//int envoie_json(int socketfd, char *code, char **data, int size)
-//{
-//    char json_data[1024];
-//    memset(json_data, 0, sizeof(json_data));
-//
-//    strcpy(json_data, "{\n\t");
-//    strcat(json_data, "\"code\" : \"");
-//    strcat(json_data, code);
-//    strcat(json_data, "\",\n\t\"valeurs\" : [ \"");
-//
-////    int i = 0;
-//
-////    printf("%zu", sizeof(*data));
-////    printf("%zu", sizeof(data[0]));
-//
-//    for (int i = 0; i < size; ++i) {
-//        strcat(json_data, data[i]);
-//        if (i != size - 1)
-//            strcat(json_data, "\", \"");
-//    }
-//
-////    for (int i = 0; i < sizeof(data)/sizeof(data[0]); i++)
-////    {
-////        strcat(json_data, data[i]);
-////        if (i != sizeof(*data)/sizeof(data[0]) - 1)
-////            strcat(json_data, ", ");
-////    }
-//    strcat(json_data, "\" ]\n}\n");
-//
-////    printf("%s", json_data);
-//
-//    int write_status = write(socketfd, json_data, strlen(json_data));
-//    if (write_status < 0)
-//    {
-//        perror("erreur ecriture");
-//        exit(EXIT_FAILURE);
-//    }
-//
-//    return 0;
-//}
 int envoie_json(int socketfd, char *data)
 {
     int size = 0;
@@ -194,6 +154,7 @@ int envoie_json(int socketfd, char *data)
 //        }
 
         is_number = regexec(&regex, data2[i], 0, NULL, 0);
+//        is_number = 1;
         regfree(&regex);
 //        printf("is_number %s:%d\n", data2[i], is_number);
         if (i != size && is_number != 0)
@@ -208,15 +169,17 @@ int envoie_json(int socketfd, char *data)
         else if (is_number != 0)
             strcat(json_data, "\"");
     }
-//    for (int i = 0; i < sizeof(data2)/sizeof(data2[0]); i++)
-//    {
-//        strcat(json_data, data2[i]);
-//        if (i != sizeof(*data2)/sizeof(data2[0]) - 1)
-//            strcat(json_data, ", ");
-//    }
+
     strcat(json_data, " ]\n}\n");
 
-//    printf("%s", json_data);
+    printf("%s", json_data);
+
+    // Vérification de la validité du JSON
+    if (!isJSONValid(json_data))
+    {
+        printf("Erreur : Le JSON n'est pas valide.\n");
+        return 0;
+    }
 
     int write_status = write(socketfd, json_data, strlen(json_data));
     if (write_status < 0)
@@ -226,36 +189,4 @@ int envoie_json(int socketfd, char *data)
     }
 
     return 0;
-}
-
-// Function to test if a string resembles JSON
-int isJSONValid(const char *str) {
-    regex_t regex;
-    int reti;
-
-    // Regular expression for a simple JSON object
-    const char *pattern = "\\{\\s*\"code\"\\s*:\\s*\"[^\"]+\"\\s*,\\s*\"valeurs\"\\s*:\\s*\\[.*\\]\\s*\\}";
-
-    // Compile the regular expression
-    reti = regcomp(&regex, pattern, REG_EXTENDED);
-    if (reti) {
-        fprintf(stderr, "Error compiling the regular expression\n");
-        return 0;  // Return 0 in case of an error
-    }
-
-    // Execute the match
-    reti = regexec(&regex, str, 0, NULL, 0);
-    regfree(&regex);  // Free the memory used by the regex structure
-
-//    printf("data :%s\n", str);
-//    printf("reti :%d\n", reti);
-
-    if (!reti) {
-        return 1;  // The string matches the regular expression, it's a valid JSON
-    } else if (reti == REG_NOMATCH) {
-        return 0;  // The string does not match the regular expression, it's not a valid JSON
-    } else {
-        fprintf(stderr, "Error executing the regular expression match\n");
-        return 0;  // Return 0 in case of an error
-    }
 }

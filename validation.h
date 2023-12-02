@@ -11,3 +11,10 @@
  * valides, c'est-à-dire que les messages respectent le format JSON et
  * respectent le protocole spécifié par le côté serveur.
  */
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <regex.h>
+
+int isJSONValid(const char *chaine);
