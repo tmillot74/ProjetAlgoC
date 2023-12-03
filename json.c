@@ -137,7 +137,7 @@ int envoie_json(int socketfd, char *data)
     for (int i = 0; i < size; ++i) {
         regex_t regex;
         int is_number;
-        is_number = regcomp(&regex, "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$", REG_EXTENDED);
+        is_number = regcomp(&regex, "^-?[0-9]+(\\.[0-9]+)?$", REG_EXTENDED);
         if (is_number != 0)
         {
             exit(EXIT_FAILURE);

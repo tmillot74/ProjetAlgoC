@@ -18,6 +18,7 @@
 #include "client.h"
 #include "json.h"
 #include "bmp.h"
+#include "validation.h"
 
 /*
  * Fonction d'envoi et de réception de messages
@@ -122,13 +123,41 @@ int envoie_operateur_numeros(int socketfd, int argc, char **argv, char *json)
 
     char calcul[1024];
 
+    // Vérifier qu'il y a au moins un opérateur
+    if (argc < 4)
+    {
+        printf("Il faut un opérateur.\n");
+        return 0;
+    }
+
+    // Vérifier que l'opérateur est valide
+    if (!isOperator(argv[3]))
+    {
+        printf("Opération non reconnue.\n");
+        return 0;
+    }
+
     strcpy(calcul, argv[3]);
 //    printf("%d\n", argc);
 
+
+    // Vérifier qu'il y a au moins deux nombres
+    if (argc-4 < 2)
+    {
+        printf("Il faut au moins deux nombres.\n");
+        return 0;
+    }
+
+    // Vérifier que les nombres sont valides
     for (int i = 4; i < argc; i++)
     {
 //        char tmp[1024];
         strcat(calcul, ", ");
+        if (!isNumber(argv[i]))
+        {
+            printf("Nombre non valide : %s\n", argv[i]);
+            return 0;
+        }
         strcat(calcul, argv[i]);
     }
 //    printf("%s", calcul);
@@ -170,10 +199,25 @@ int envoie_operateur_numeros(int socketfd, int argc, char **argv, char *json)
 
 }
 
-int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv, char *json)
+int envoie_les_couleurs(int socketfd, int argc, char **argv, char *json)
 {
     char data[1024];
     memset(data, 0, sizeof(data));
+    char *nb_couleurs;
+
+    if (argv[3] == NULL)
+    {
+        printf("Il faut un nombre de couleurs.\n");
+        return 0;
+    }
+    else if (!isInt(argv[3]))
+    {
+        printf("Nombre de couleurs invalide : %s\n", argv[3]);
+        return 0;
+    }
+    else
+        nb_couleurs = argv[3];
+
 
     strcpy(data, "couleurs: ");
     strcat(data, nb_couleurs);
@@ -181,9 +225,23 @@ int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv, char *json
 //    printf("%s", argv[4]);
 //    strcat(data, data_color);
 
+//    printf("%d\n", argc);
+//    printf("%d %d\n", argc-4, atoi(nb_couleurs));
+
+    if (argc-4 < atoi(nb_couleurs))
+    {
+        printf("Nombre de couleurs données inférieur à : %d\n", atoi(nb_couleurs));
+        return 0;
+    }
+
     for (int i = 0; i < atoi(nb_couleurs); i++)
     {
         strcat(data, ", ");
+        if (!isHexa(argv[i+4]))
+        {
+            printf("Couleur non valide : %s\n", argv[i+4]);
+            return 0;
+        }
         strcat(data, argv[i+4]);
     }
 
@@ -220,17 +278,43 @@ int envoie_les_couleurs(int socketfd, char *nb_couleurs, char **argv, char *json
 
 }
 
-int envoie_balises(int socketfd, char *nb_balises, char **argv, char* json)
+int envoie_balises(int socketfd, int argc, char **argv, char* json)
 {
     char data[1024];
     memset(data, 0, sizeof(data));
+    char *nb_balises;
+
+    if (argv[3] == NULL)
+    {
+        printf("Il faut un nombre de balises.\n");
+        return 0;
+    }
+    else if (!isInt(argv[3]))
+    {
+        printf("Nombre de balises invalide : %s\n", argv[3]);
+        return 0;
+    }
+    else
+        nb_balises = argv[3];
 
     strcpy(data, "balises: ");
     strcat(data, nb_balises);
 
+
+    if (argc-4 < atoi(nb_balises))
+    {
+        printf("Nombre de balises données inférieur à : %d\n", atoi(nb_balises));
+        return 0;
+    }
+
     for (int i = 0; i < atoi(nb_balises); i++)
     {
         strcat(data, ", ");
+        if (!isBalise(argv[i+4]))
+        {
+            printf("Balise non valide : %s\n", argv[i+4]);
+            return 0;
+        }
         strcat(data, argv[i+4]);
     }
 
@@ -278,7 +362,7 @@ void analyse(char *pathname, char *data)
     int count;
     strcpy(data, "couleurs: ");
     char temp_string[10] = "10,";
-    printf("Nombre de couleurs (max 30): ");
+    printf("\nNombre de couleurs (max 30): ");
     scanf("%d", &nbCouleurs);
     if (nbCouleurs <= 30 && nbCouleurs > 0)
     {
@@ -366,6 +450,11 @@ int main(int argc, char **argv)
     }
     if (argc != 2)
     {
+        if (!isFunction(argv[2]))
+        {
+            printf("Fontion non reconnue.\n");
+            return (EXIT_FAILURE);
+        }
         // envoyer et recevoir un message
         if (strcmp(argv[2], "message") == 0)
             envoie_recois_message(socketfd, argv[1]);
@@ -374,9 +463,9 @@ int main(int argc, char **argv)
         else if (strcmp(argv[2], "calcul") == 0)
             envoie_operateur_numeros(socketfd, argc, argv, argv[1]);
         else if (strcmp(argv[2], "couleurs") == 0)
-            envoie_les_couleurs(socketfd, argv[3], argv, argv[1]);
+            envoie_les_couleurs(socketfd, argc, argv, argv[1]);
         else if (strcmp(argv[2], "balises") == 0)
-            envoie_balises(socketfd, argv[3], argv, argv[1]);
+            envoie_balises(socketfd, argc, argv, argv[1]);
     }
     else
     {

@@ -18,3 +18,9 @@
 #include <regex.h>
 
 int isJSONValid(const char *chaine);
+int isFunction(const char *chaine);
+int isNumber(const char *chaine);
+int isInt(const char *chaine);
+int isOperator(const char *chaine);
+int isHexa(const char *chaine);
+int isBalise(const char *chaine);

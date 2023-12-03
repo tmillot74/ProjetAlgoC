@@ -17,7 +17,7 @@
 #include <unistd.h>
 #include <regex.h>
 
-// Function to test if a string resembles JSON
+// Fonction pour vérifier la validité du JSON
 int isJSONValid(const char *chaine) {
     regex_t regex;
     int reti;
@@ -114,14 +114,15 @@ int isJSONValid(const char *chaine) {
 
     // Vérifier que les valeurs sont des nombres avec un regex
     // On ne vérifie que les valeurs qui n'ont pas de guillemets
-    const char *pattern2 = "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$";
-    const char *pattern3 = "^\"[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)\"$";
+    const char *pattern2 = "^-?[0-9]+(\\.[0-9]+)?$";
+    const char *pattern3 = "^\"-?[0-9]+(\\.[0-9]+)?\"$";
     if (reti) {
         fprintf(stderr, "Erreur lors de la compilation de l'expression régulière\n");
         return 0;  // Retourner 0 en cas d'erreur
     }
 
     for (i = 0; i < nbValeurs; i++) {
+        // Si la valeur ne commence pas par un guillemet, on vérifie que c'est un nombre
         if (valeurs[i][0] != '"') {
             reti = regcomp(&regex, pattern2, REG_EXTENDED);
             reti = regexec(&regex, valeurs[i], 0, NULL, 0);
@@ -129,7 +130,8 @@ int isJSONValid(const char *chaine) {
                 return 0;  // La chaîne ne correspond pas à l'expression régulière, ce n'est pas un JSON valide
             }
         }
-        else {
+        else // Sinon, on vérifie que la valeur est bien entre guillemets n'est pas un nombre
+        {
             reti = regcomp(&regex, pattern3, REG_EXTENDED);
             reti = regexec(&regex, valeurs[i], 0, NULL, 0);
             if (!reti) {
@@ -139,4 +141,160 @@ int isJSONValid(const char *chaine) {
     }
 
     return 1;  // La chaîne correspond à la structure JSON et respecte la condition sur les guillemets
+}
+
+// Fonction pour vérifier les fonctions
+int isFunction(const char *chaine) {
+    regex_t regex;
+    int reti;
+
+    // Expression régulière pour vérifier les fonctions
+    const char *pattern = "^(message|nom|calcul|couleurs|balises)$";
+
+    // Compiler l'expression régulière
+    reti = regcomp(&regex, pattern, REG_EXTENDED);
+    if (reti) {
+        fprintf(stderr, "Erreur lors de la compilation de l'expression régulière\n");
+        return 0;  // Retourner 0 en cas d'erreur
+    }
+
+    // Exécuter la correspondance
+    reti = regexec(&regex, chaine, 0, NULL, 0);
+    regfree(&regex);  // Libérer la mémoire utilisée par la structure regex
+
+    if (reti) {
+        return 0;  // La chaîne ne correspond pas à l'expression régulière
+    }
+
+    return 1;
+}
+
+// Fonction pour vérifier les nombres
+int isNumber(const char *chaine) {
+    regex_t regex;
+    int reti;
+
+    // Expression régulière pour vérifier les nombres
+    const char *pattern = "^-?[0-9]+(\\.[0-9]+)?$";
+
+    // Compiler l'expression régulière
+    reti = regcomp(&regex, pattern, REG_EXTENDED);
+    if (reti) {
+        fprintf(stderr, "Erreur lors de la compilation de l'expression régulière\n");
+        return 0;  // Retourner 0 en cas d'erreur
+    }
+
+    // Exécuter la correspondance
+    reti = regexec(&regex, chaine, 0, NULL, 0);
+    regfree(&regex);  // Libérer la mémoire utilisée par la structure regex
+
+    if (reti) {
+        return 0;  // La chaîne ne correspond pas à l'expression régulière
+    }
+
+    return 1;
+}
+
+// Fonction pour vérifier les entiers
+int isInt(const char *chaine) {
+    regex_t regex;
+    int reti;
+
+    // Expression régulière pour vérifier les entiers
+    const char *pattern = "^-?[0-9]+$";
+
+    // Compiler l'expression régulière
+    reti = regcomp(&regex, pattern, REG_EXTENDED);
+    if (reti) {
+        fprintf(stderr, "Erreur lors de la compilation de l'expression régulière\n");
+        return 0;  // Retourner 0 en cas d'erreur
+    }
+
+    // Exécuter la correspondance
+    reti = regexec(&regex, chaine, 0, NULL, 0);
+    regfree(&regex);  // Libérer la mémoire utilisée par la structure regex
+
+    if (reti) {
+        return 0;  // La chaîne ne correspond pas à l'expression régulière
+    }
+
+    return 1;
+}
+
+// Fonction pour vérifier les opérateurs
+int isOperator(const char *chaine) {
+    regex_t regex;
+    int reti;
+
+    // Expression régulière pour vérifier les opérateurs
+    const char *pattern = "^(\\+|\\-|\\*|\\/|moyenne|minimum|maximum|variance|écart-type)$";
+
+    // Compiler l'expression régulière
+    reti = regcomp(&regex, pattern, REG_EXTENDED);
+    if (reti) {
+        fprintf(stderr, "Erreur lors de la compilation de l'expression régulière\n");
+        return 0;  // Retourner 0 en cas d'erreur
+    }
+
+    // Exécuter la correspondance
+    reti = regexec(&regex, chaine, 0, NULL, 0);
+    regfree(&regex);  // Libérer la mémoire utilisée par la structure regex
+
+    if (reti) {
+        return 0;  // La chaîne ne correspond pas à l'expression régulière
+    }
+
+    return 1;
+}
+
+// Fonction pour vérifier les couleurs en hexadécimal
+int isHexa(const char *chaine) {
+    regex_t regex;
+    int reti;
+
+    // Expression régulière pour vérifier les couleurs en hexadécimal
+    const char *pattern = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$";
+
+    // Compiler l'expression régulière
+    reti = regcomp(&regex, pattern, REG_EXTENDED);
+    if (reti) {
+        fprintf(stderr, "Erreur lors de la compilation de l'expression régulière\n");
+        return 0;  // Retourner 0 en cas d'erreur
+    }
+
+    // Exécuter la correspondance
+    reti = regexec(&regex, chaine, 0, NULL, 0);
+    regfree(&regex);  // Libérer la mémoire utilisée par la structure regex
+
+    if (reti) {
+        return 0;  // La chaîne ne correspond pas à l'expression régulière
+    }
+
+    return 1;
+}
+
+// Fonction pour vérifier les balises
+int isBalise(const char *chaine) {
+    regex_t regex;
+    int reti;
+
+    // Expression régulière pour vérifier les balises #balise
+    const char *pattern = "^#\\s*\\S.*$";
+
+    // Compiler l'expression régulière
+    reti = regcomp(&regex, pattern, REG_EXTENDED);
+    if (reti) {
+        fprintf(stderr, "Erreur lors de la compilation de l'expression régulière\n");
+        return 0;  // Retourner 0 en cas d'erreur
+    }
+
+    // Exécuter la correspondance
+    reti = regexec(&regex, chaine, 0, NULL, 0);
+    regfree(&regex);  // Libérer la mémoire utilisée par la structure regex
+
+    if (reti) {
+        return 0;  // La chaîne ne correspond pas à l'expression régulière
+    }
+
+    return 1;
 }
